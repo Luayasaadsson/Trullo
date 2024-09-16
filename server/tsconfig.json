@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "ES2015",
+    "module": "commonjs",
     "outDir": "../dist",
     "rootDir": "./src",
     "strict": true,
@@ -17,5 +17,5 @@
     "noUnusedParameters": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules"]
 }

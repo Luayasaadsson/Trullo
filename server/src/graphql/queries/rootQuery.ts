@@ -17,7 +17,7 @@ const RootQuery = new GraphQLObjectType({
     user: {
       type: UserType,
       args: { id: { type: GraphQLID } },
-      resolve(args) {
+      resolve(parent, args) {
         return getUserById(args.id);
       },
     },
@@ -31,7 +31,7 @@ const RootQuery = new GraphQLObjectType({
     task: {
       type: TaskType,
       args: { id: { type: GraphQLID } },
-      resolve(args) {
+      resolve(parent, args) {
         return getTaskById(args.id);
       },
     },

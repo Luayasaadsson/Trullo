@@ -17,8 +17,7 @@ export const createUser = async (args: {
   email: string;
   password: string;
 }) => {
-  const hashedPassword = await hashPassword(args.password);
-  const newUser = new User({ ...args, password: hashedPassword });
+  const newUser = new User({ ...args });
   return await newUser.save();
 };
 

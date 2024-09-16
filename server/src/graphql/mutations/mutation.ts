@@ -30,7 +30,7 @@ const Mutation = new GraphQLObjectType({
         email: { type: new GraphQLNonNull(GraphQLString) },
         password: { type: new GraphQLNonNull(GraphQLString) },
       },
-      async resolve(args) {
+      async resolve(parent, args) {
         try {
           // Hashing the password before creating the user
           const salt = await bcrypt.genSalt(10);
@@ -47,6 +47,7 @@ const Mutation = new GraphQLObjectType({
         }
       },
     },
+
     updateUser: {
       type: UserType,
       args: {
@@ -55,7 +56,7 @@ const Mutation = new GraphQLObjectType({
         email: { type: GraphQLString },
         password: { type: GraphQLString },
       },
-      async resolve(args) {
+      async resolve(parent, args) {
         try {
           let updatedFields: any = { name: args.name, email: args.email };
 
@@ -77,7 +78,7 @@ const Mutation = new GraphQLObjectType({
     deleteUser: {
       type: UserType,
       args: { id: { type: new GraphQLNonNull(GraphQLID) } },
-      resolve(args) {
+      resolve(parent, args) {
         return deleteUser(args.id);
       },
     },
@@ -91,7 +92,7 @@ const Mutation = new GraphQLObjectType({
         status: { type: new GraphQLNonNull(GraphQLString) },
         assignedTo: { type: GraphQLID },
       },
-      resolve(args) {
+      resolve(parent, args) {
         return createTask({
           title: args.title,
           description: args.description,
@@ -108,7 +109,7 @@ const Mutation = new GraphQLObjectType({
         description: { type: GraphQLString },
         status: { type: new GraphQLNonNull(GraphQLString) },
       },
-      resolve(args) {
+      resolve(parent, args) {
         return updateTask({
           id: args.id,
           title: args.title,
@@ -120,7 +121,7 @@ const Mutation = new GraphQLObjectType({
     deleteTask: {
       type: TaskType,
       args: { id: { type: new GraphQLNonNull(GraphQLID) } },
-      resolve(args) {
+      resolve(parent, args) {
         return deleteTask(args.id);
       },
     },
@@ -130,7 +131,7 @@ const Mutation = new GraphQLObjectType({
         taskId: { type: new GraphQLNonNull(GraphQLID) },
         userId: { type: new GraphQLNonNull(GraphQLID) },
       },
-      resolve(args) {
+      resolve(parent, args) {
         return assignTask(args.taskId, args.userId);
       },
     },

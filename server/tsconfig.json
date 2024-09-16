@@ -14,7 +14,7 @@
     "allowSyntheticDefaultImports": true,
     "noImplicitAny": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": false
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]

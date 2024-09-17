@@ -15,6 +15,13 @@ const TaskType = new GraphQLObjectType({
         return User.findById(parent.assignedTo);
       },
     },
+    createdAt: { type: GraphQLString },
+    finishedBy: {
+      type: UserType,
+      resolve(parent) {
+        return User.findById(parent.finishedBy);
+      },
+    },
   }),
 });
 

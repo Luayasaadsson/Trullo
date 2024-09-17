@@ -110,6 +110,7 @@ const Mutation = new GraphQLObjectType({
         title: { type: GraphQLString },
         description: { type: GraphQLString },
         status: { type: new GraphQLNonNull(GraphQLString) },
+        finishedBy: { type: GraphQLID },
       },
       resolve(parent, args) {
         return updateTask({
@@ -117,6 +118,7 @@ const Mutation = new GraphQLObjectType({
           title: args.title,
           description: args.description,
           status: args.status,
+          finishedBy: args.finishedBy,
         });
       },
     },

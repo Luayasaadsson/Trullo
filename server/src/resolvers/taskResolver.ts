@@ -70,6 +70,7 @@ export const updateTask = async (args: {
   title?: string;
   description?: string;
   status?: string;
+  finishedBy?: string;
 }) => {
   try {
     // Validate that the ID has the correct format

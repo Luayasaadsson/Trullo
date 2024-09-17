@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 // Define TaskStatus-enum
 export enum TaskStatus {
   TODO = "Todo",
-  PENDING = "Pending",
+  INPROGRESS = "In Progress",
   COMPLETED = "Completed",
 }
 
@@ -16,6 +16,8 @@ const taskSchema = new mongoose.Schema({
     required: true,
   },
   assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  createdAt: { type: Date, default: Date.now },
+  finishedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 });
 
 export default mongoose.model("Task", taskSchema);

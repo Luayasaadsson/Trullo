@@ -1,6 +1,5 @@
 import UserType from "../types/UserType";
 import TaskType from "../types/TaskType";
-import bcrypt from "bcrypt";
 import {
   GraphQLObjectType,
   GraphQLNonNull,
@@ -11,6 +10,7 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  deleteAllUsers,
 } from "./../../resolvers/userResolver";
 import {
   createTask,
@@ -32,18 +32,14 @@ const Mutation = new GraphQLObjectType({
       },
       async resolve(parent, args) {
         try {
-          // Hashing the password before creating the user
-          const salt = await bcrypt.genSalt(10);
-          const hashedPassword = await bcrypt.hash(args.password, salt);
-
           // Sending the hashed password to createUser
           return createUser({
             name: args.name,
             email: args.email,
-            password: hashedPassword,
+            password: args.password,
           });
         } catch (err) {
-          throw new Error("Error creating user");
+          throw new Error(`Error creating user: ${(err as Error).message}`);
         }
       },
     },
@@ -52,34 +48,40 @@ const Mutation = new GraphQLObjectType({
       type: UserType,
       args: {
         id: { type: new GraphQLNonNull(GraphQLID) },
-        name: { type: GraphQLString },
-        email: { type: GraphQLString },
+        name: { type: new GraphQLNonNull(GraphQLString) },
+        email: { type: new GraphQLNonNull(GraphQLString) },
         password: { type: GraphQLString },
       },
       async resolve(parent, args) {
         try {
-          let updatedFields: any = { name: args.name, email: args.email };
-
-          if (args.password) {
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(args.password, salt);
-            updatedFields.password = hashedPassword;
-          }
-
-          return updateUser({
+          return await updateUser({
             id: args.id,
-            ...updatedFields,
+            name: args.name,
+            email: args.email,
+            password: args.password,
           });
         } catch (err) {
-          throw new Error("Error updating user");
+          throw new Error(`Error updating user: ${(err as Error).message}`);
         }
       },
     },
+
     deleteUser: {
       type: UserType,
       args: { id: { type: new GraphQLNonNull(GraphQLID) } },
       resolve(parent, args) {
         return deleteUser(args.id);
+      },
+    },
+    deleteAllUsers: {
+      type: GraphQLString,
+      async resolve() {
+        try {
+          const result = await deleteAllUsers();
+          return result.message;
+        } catch (err) {
+          throw new Error(`${(err as Error).message}`);
+        }
       },
     },
 

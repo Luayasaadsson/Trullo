@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 interface User {
   id: string;
   email: string;
+  role: string;
 }
 
 interface AuthenticatedRequest extends Request {
@@ -19,10 +20,15 @@ const authenticate = (
   if (!token) {
     return res.status(401).json({ message: "Authorization token missing" });
   }
-
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as User;
     req.user = decoded;
+
+    // Check admin role
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
     next();
   } catch (error) {
     res.status(401).json({ message: "Invalid token" });

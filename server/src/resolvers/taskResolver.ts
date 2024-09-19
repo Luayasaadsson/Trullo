@@ -1,6 +1,6 @@
-import Task from "./../models/task";
-import { TaskStatus } from "./../models/task";
-import User from "./../models/user";
+import Task from "../models/taskModel";
+import { TaskStatus } from "../models/taskModel";
+import User from "../models/userModel";
 import { isValidObjectId } from "../utils/idValidationUtils";
 
 // Get all tasks

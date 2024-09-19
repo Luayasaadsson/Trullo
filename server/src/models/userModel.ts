@@ -9,6 +9,9 @@ const userSchema = new mongoose.Schema({
     match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   },
   password: { type: String, required: true, minlength: 6 },
+  role: { type: String, enum: ["user", "admin"], default: "user" },
+  resetToken: { type: String },
+  resetTokenExpiry: { type: Date },
 });
 
 export default mongoose.model("User", userSchema);

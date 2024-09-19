@@ -1,6 +1,9 @@
-import User from "./../models/user";
+import User from "../models/userModel";
 import { hashPassword } from "./../utils/passwordUtils";
 import { isValidObjectId } from "../utils/idValidationUtils";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 // Get all users
 export const getUsers = async () => {
@@ -159,4 +162,59 @@ export const deleteAllUsers = async () => {
   } catch (error) {
     throw new Error(`Failed to delete all users: ${(error as Error).message}`);
   }
+};
+
+// Login user
+export const loginUser = async (email: string, password: string) => {
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new Error("Invalid email or password");
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new Error("Invalid email or password");
+    }
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "1h" }
+    );
+    return { token, user };
+  } catch (error) {
+    throw new Error(`Login failed: ${(error as Error).message}`);
+  }
+};
+
+// Request password reset
+export const requestPasswordReset = async (email: string) => {
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new Error("User with this email does not exist");
+  }
+
+  // Generera reset token
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  user.resetToken = resetToken;
+  user.resetTokenExpiry = new Date(Date.now() + 3600000);
+  await user.save();
+
+  console.log(`Reset token for ${email}: ${resetToken}`);
+};
+
+// Reset password
+export const resetPassword = async (token: string, newPassword: string) => {
+  const user = await User.findOne({
+    resetToken: token,
+    resetTokenExpiry: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    throw new Error("Invalid or expired reset token");
+  }
+
+  user.password = (await hashPassword(newPassword)) || "";
+  user.resetToken = undefined;
+  user.resetTokenExpiry = undefined;
+  await user.save();
 };

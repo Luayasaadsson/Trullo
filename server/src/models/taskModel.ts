@@ -18,6 +18,8 @@ const taskSchema = new mongoose.Schema({
   assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   createdAt: { type: Date, default: Date.now },
   finishedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  tags: [String],
+  project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true }
 });
 
 export default mongoose.model("Task", taskSchema);

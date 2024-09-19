@@ -10,30 +10,58 @@ import {
   requestPasswordReset,
   resetPassword,
 } from "./../resolvers/userResolver";
+import { check, validationResult } from "express-validator";
 
 const router = express.Router();
 
 // Route for registering a new user
-router.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
-  try {
-    const newUser = await createUser({ name, email, password });
-    res.json({ message: "User registered successfully", user: newUser });
-  } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
+router.post(
+  "/register",
+  [
+    check("name").not().isEmpty().withMessage("Name is required"),
+    check("email").isEmail().withMessage("Enter a valid email"),
+    check("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters long"),
+  ],
+  async (req: express.Request, res: express.Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { name, email, password } = req.body;
+    try {
+      const newUser = await createUser({ name, email, password });
+      res.json({ message: "User registered successfully", user: newUser });
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
   }
-});
+);
 
 // Route for logging in
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const { token, user } = await loginUser(email, password);
-    res.json({ token, user });
-  } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
+router.post(
+  "/login",
+  [
+    check("email").isEmail().withMessage("Enter a valid email"),
+    check("password").not().isEmpty().withMessage("Password is required"),
+  ],
+  async (req: express.Request, res: express.Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, password } = req.body;
+    try {
+      const { token, user } = await loginUser(email, password);
+      res.json({ token, user });
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
   }
-});
+);
 
 // Route for getting all users
 router.get("/users", async (req, res) => {
@@ -57,16 +85,32 @@ router.get("/users/:id", async (req, res) => {
 });
 
 // Route for updating a user based on ID
-router.put("/users/:id", async (req, res) => {
-  const { id } = req.params;
-  const { name, email, password } = req.body;
-  try {
-    const updatedUser = await updateUser({ id, name, email, password });
-    res.json({ message: "User updated successfully", user: updatedUser });
-  } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
+router.put(
+  "/users/:id",
+  [
+    check("name").not().isEmpty().withMessage("Name is required"),
+    check("email").isEmail().withMessage("Enter a valid email"),
+    check("password")
+      .optional()
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters long"),
+  ],
+  async (req: express.Request, res: express.Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { id } = req.params;
+    const { name, email, password } = req.body;
+    try {
+      const updatedUser = await updateUser({ id, name, email, password });
+      res.json({ message: "User updated successfully", user: updatedUser });
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
   }
-});
+);
 
 // Route for deleting a user based on ID
 router.delete("/users/:id", async (req, res) => {
@@ -101,14 +145,27 @@ router.post("/request-reset", async (req, res) => {
 });
 
 // Route for resetting password with a reset token
-router.post("/reset-password", async (req, res) => {
-  const { token, newPassword } = req.body;
-  try {
-    await resetPassword(token, newPassword);
-    res.json({ message: "Your password has been changed successfully" });
-  } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
+router.post(
+  "/reset-password",
+  [
+    check("newPassword")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters long"),
+  ],
+  async (req: express.Request, res: express.Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { token, newPassword } = req.body;
+    try {
+      await resetPassword(token, newPassword);
+      res.json({ message: "Your password has been changed successfully" });
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
   }
-});
+);
 
 export default router;

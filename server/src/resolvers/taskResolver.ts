@@ -40,6 +40,9 @@ export const createTask = async (args: {
   description: string;
   status: string;
   assignedTo: string;
+  finishedBy: string;
+  project: string;
+  tags: string[];
 }) => {
   try {
     const status = args.status as TaskStatus;
@@ -57,6 +60,26 @@ export const createTask = async (args: {
       throw new Error("Title, description and status are required");
     }
 
+    // Validate that the project ID is a valid ObjectId
+    if (!isValidObjectId(args.project)) {
+      throw new Error("Invalid project ID format");
+    }
+
+    // Validate that the assignedTo ID is a valid ObjectId
+    if (!isValidObjectId(args.assignedTo)) {
+      throw new Error("Invalid assignedTo ID format");
+    }
+
+    // Validate that the finishedBy ID is a valid ObjectId
+    if (!isValidObjectId(args.finishedBy)) {
+      throw new Error("Invalid finishedBy ID format");
+    }
+
+    // Validate that the tags array contains only strings
+    if (!Array.isArray(args.tags)) {
+      throw new Error("Tags must be an array of strings");
+    }
+
     const newTask = new Task(args);
     return await newTask.save();
   } catch (error) {
@@ -71,6 +94,8 @@ export const updateTask = async (args: {
   description?: string;
   status?: string;
   finishedBy?: string;
+  project?: string;
+  tags?: string[];
 }) => {
   try {
     // Validate that the ID has the correct format
@@ -110,6 +135,26 @@ export const updateTask = async (args: {
     // Validate that status is not missing or empty
     if (args.status === undefined || args.status.trim() === "") {
       throw new Error("Status is required and cannot be empty");
+    }
+
+    // Validate that the project ID is a valid ObjectId
+    if (args.project && !isValidObjectId(args.project)) {
+      throw new Error("Invalid project ID format");
+    }
+
+    // Validate that the finishedBy ID is a valid ObjectId
+    if (args.finishedBy && !isValidObjectId(args.finishedBy)) {
+      throw new Error("Invalid finishedBy ID format");
+    }
+
+    // Validate that the tags array contains only strings
+    if (args.tags) {
+      if (!Array.isArray(args.tags)) {
+        throw new Error("Tags must be an array of strings");
+      }
+      if (args.tags.some((tag) => typeof tag !== "string")) {
+        throw new Error("Tags must be an array of strings");
+      }
     }
 
     // Perform the update

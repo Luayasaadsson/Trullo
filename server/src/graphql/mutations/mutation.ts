@@ -1,10 +1,13 @@
 import UserType from "../types/UserType";
 import TaskType from "../types/TaskType";
+import ProjectType from "../types/ProjectType";
+import Project from "../../models/projectModel";
 import {
   GraphQLObjectType,
   GraphQLNonNull,
   GraphQLString,
   GraphQLID,
+  GraphQLList,
 } from "graphql";
 import {
   createUser,
@@ -85,6 +88,22 @@ const Mutation = new GraphQLObjectType({
       },
     },
 
+    // Project mutations
+    createProject: {
+      type: ProjectType,
+      args: {
+        name: { type: new GraphQLNonNull(GraphQLString) },
+        description: { type: GraphQLString },
+      },
+      resolve(parent, args) {
+        const newProject = new Project({
+          name: args.name,
+          description: args.description,
+        });
+        return newProject.save();
+      },
+    },
+
     // Task mutations
     createTask: {
       type: TaskType,
@@ -93,6 +112,9 @@ const Mutation = new GraphQLObjectType({
         description: { type: GraphQLString },
         status: { type: new GraphQLNonNull(GraphQLString) },
         assignedTo: { type: GraphQLID },
+        finishedBy: { type: GraphQLID },
+        project: { type: new GraphQLNonNull(GraphQLID) },
+        tags: { type: new GraphQLList(GraphQLString) },
       },
       resolve(parent, args) {
         return createTask({
@@ -100,6 +122,9 @@ const Mutation = new GraphQLObjectType({
           description: args.description,
           status: args.status,
           assignedTo: args.assignedTo,
+          finishedBy: args.finishedBy,
+          project: args.project,
+          tags: args.tags,
         });
       },
     },
@@ -111,6 +136,7 @@ const Mutation = new GraphQLObjectType({
         description: { type: GraphQLString },
         status: { type: new GraphQLNonNull(GraphQLString) },
         finishedBy: { type: GraphQLID },
+        tags: { type: new GraphQLList(GraphQLString) },
       },
       resolve(parent, args) {
         return updateTask({
@@ -119,6 +145,7 @@ const Mutation = new GraphQLObjectType({
           description: args.description,
           status: args.status,
           finishedBy: args.finishedBy,
+          tags: args.tags,
         });
       },
     },

@@ -32,6 +32,7 @@ const Mutation = new GraphQLObjectType({
         name: { type: new GraphQLNonNull(GraphQLString) },
         email: { type: new GraphQLNonNull(GraphQLString) },
         password: { type: new GraphQLNonNull(GraphQLString) },
+        role: { type: GraphQLString },
       },
       async resolve(parent, args) {
         try {
@@ -40,6 +41,7 @@ const Mutation = new GraphQLObjectType({
             name: args.name,
             email: args.email,
             password: args.password,
+            role: args.role,
           });
         } catch (err) {
           throw new Error(`Error creating user: ${(err as Error).message}`);

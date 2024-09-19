@@ -41,6 +41,7 @@ export const createUser = async (args: {
   name: string;
   email: string;
   password: string;
+  role: string;
 }) => {
   try {
     // Validate that none of the fields are empty
@@ -62,6 +63,7 @@ export const createUser = async (args: {
       name: args.name,
       email: args.email,
       password: hashedPassword,
+      role: args.role,
     });
     return await newUser.save();
   } catch (error) {

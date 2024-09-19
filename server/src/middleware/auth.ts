@@ -7,7 +7,7 @@ interface User {
   role: string;
 }
 
-interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request {
   user?: User;
 }
 
@@ -23,12 +23,6 @@ const authenticate = (
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as User;
     req.user = decoded;
-
-    // Check admin role
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Access denied" });
-    }
-
     next();
   } catch (error) {
     res.status(401).json({ message: "Invalid token" });

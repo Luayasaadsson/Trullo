@@ -14,6 +14,9 @@ import {
   updateUser,
   deleteUser,
   deleteAllUsers,
+  loginUser,
+  requestPasswordReset,
+  resetPassword,
 } from "./../../resolvers/userResolver";
 import {
   createTask,
@@ -35,20 +38,14 @@ const Mutation = new GraphQLObjectType({
         role: { type: GraphQLString },
       },
       async resolve(parent, args) {
-        try {
-          // Sending the hashed password to createUser
-          return createUser({
-            name: args.name,
-            email: args.email,
-            password: args.password,
-            role: args.role,
-          });
-        } catch (err) {
-          throw new Error(`Error creating user: ${(err as Error).message}`);
-        }
+        return await createUser({
+          name: args.name,
+          email: args.email,
+          password: args.password,
+          role: args.role,
+        });
       },
     },
-
     updateUser: {
       type: UserType,
       args: {
@@ -57,36 +54,71 @@ const Mutation = new GraphQLObjectType({
         email: { type: new GraphQLNonNull(GraphQLString) },
         password: { type: GraphQLString },
       },
-      async resolve(parent, args) {
-        try {
-          return await updateUser({
-            id: args.id,
-            name: args.name,
-            email: args.email,
-            password: args.password,
-          });
-        } catch (err) {
-          throw new Error(`Error updating user: ${(err as Error).message}`);
+      async resolve(parent, args, context) {
+        if (!context.user) {
+          throw new Error("Authentication required");
         }
+        if (context.user.role !== "admin") {
+          throw new Error("Unauthorized: Only admin can update users");
+        }
+        return await updateUser({
+          id: args.id,
+          name: args.name,
+          email: args.email,
+          password: args.password,
+        });
       },
     },
-
     deleteUser: {
       type: UserType,
       args: { id: { type: new GraphQLNonNull(GraphQLID) } },
-      resolve(parent, args) {
-        return deleteUser(args.id);
+      async resolve(parent, args, context) {
+        if (!context.user) {
+          throw new Error("Authentication required");
+        }
+        if (context.user.role !== "admin") {
+          throw new Error("Unauthorized: Only admin can delete users");
+        }
+        return await deleteUser(args.id);
       },
     },
     deleteAllUsers: {
       type: GraphQLString,
-      async resolve() {
-        try {
-          const result = await deleteAllUsers();
-          return result.message;
-        } catch (err) {
-          throw new Error(`${(err as Error).message}`);
+      async resolve(_, args, context) {
+        if (!context.user) {
+          throw new Error("Authentication required");
         }
+        if (context.user.role !== "admin") {
+          throw new Error("Unauthorized: Only admin can delete users");
+        }
+        return await deleteAllUsers();
+      },
+    },
+    loginUser: {
+      type: UserType,
+      args: {
+        email: { type: new GraphQLNonNull(GraphQLString) },
+        password: { type: new GraphQLNonNull(GraphQLString) },
+      },
+      async resolve(parent, args) {
+        return await loginUser(args.email, args.password);
+      },
+    },
+    requestPasswordReset: {
+      type: GraphQLString,
+      args: { email: { type: new GraphQLNonNull(GraphQLString) } },
+      async resolve(parent, args) {
+        return await requestPasswordReset(args.email);
+      },
+    },
+    resetPassword: {
+      type: GraphQLString,
+      args: {
+        token: { type: new GraphQLNonNull(GraphQLString) },
+        newPassword: { type: new GraphQLNonNull(GraphQLString) },
+      },
+      async resolve(parent, args) {
+        return await resetPassword(args.token, args.newPassword);
       },
     },
 

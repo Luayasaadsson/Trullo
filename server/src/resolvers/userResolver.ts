@@ -63,7 +63,7 @@ export const createUser = async (args: {
       name: args.name,
       email: args.email,
       password: hashedPassword,
-      role: args.role,
+      role: args.role || "user",
     });
     return await newUser.save();
   } catch (error) {
@@ -77,6 +77,7 @@ export const updateUser = async (args: {
   name?: string;
   email?: string;
   password?: string;
+  role?: string;
 }) => {
   try {
     // Validate that the ID has the correct format
@@ -145,7 +146,7 @@ export const deleteUser = async (id: string) => {
   }
 };
 
-// Delete all users
+// Delete all users except admins
 export const deleteAllUsers = async () => {
   try {
     // Check if there are any users in the database
@@ -154,15 +155,20 @@ export const deleteAllUsers = async () => {
       throw new Error("No users to delete");
     }
 
-    // Delete all users
-    const result = await User.deleteMany({});
+    // Remove all users who do not have the role admin
+    const result = await User.deleteMany({ role: { $ne: "admin" } });
+
     if (result.deletedCount === 0) {
       throw new Error("Failed to delete users");
     }
 
-    return { message: `${result.deletedCount} users deleted` };
+    return { message: `${result.deletedCount} users deleted.` };
   } catch (error) {
-    throw new Error(`Failed to delete all users: ${(error as Error).message}`);
+    throw new Error(
+      `Failed to delete all users: There is no user to delete. ${
+        (error as Error).message
+      }`
+    );
   }
 };
 
@@ -182,7 +188,14 @@ export const loginUser = async (email: string, password: string) => {
       process.env.JWT_SECRET as string,
       { expiresIn: "1h" }
     );
-    return { token, user };
+    return {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      password: user.password,
+      role: user.role,
+      token,
+    };
   } catch (error) {
     throw new Error(`Login failed: ${(error as Error).message}`);
   }
@@ -198,14 +211,20 @@ export const requestPasswordReset = async (email: string) => {
   // Generera reset token
   const resetToken = crypto.randomBytes(32).toString("hex");
   user.resetToken = resetToken;
-  user.resetTokenExpiry = new Date(Date.now() + 3600000);
+  user.resetTokenExpiry = new Date(Date.now() + 3600000); // Token valid for 1 hour
   await user.save();
 
-  console.log(`Reset token for ${email}: ${resetToken}`);
+  console.log(`Password reset token generated for ${email}: ${resetToken}`);
+
+  return `A password reset token has been sent to ${email}. The token is valid for 1 hour.`;
 };
 
 // Reset password
 export const resetPassword = async (token: string, newPassword: string) => {
+  if (newPassword.length < 6) {
+    throw new Error("Password must be at least 6 characters long.");
+  }
+
   const user = await User.findOne({
     resetToken: token,
     resetTokenExpiry: { $gt: Date.now() },
@@ -215,8 +234,9 @@ export const resetPassword = async (token: string, newPassword: string) => {
     throw new Error("Invalid or expired reset token");
   }
 
-  user.password = (await hashPassword(newPassword)) || "";
-  user.resetToken = undefined;
-  user.resetTokenExpiry = undefined;
   await user.save();
+
+  console.log(`Password has been changed for user with email: ${user.email}`);
+
+  return "Your password has been successfully reset.";
 };

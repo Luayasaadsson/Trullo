@@ -1,13 +1,20 @@
 import User from "../models/userModel";
+import { UserContext } from "./../types/types";
 import { hashPassword } from "./../utils/passwordUtils";
 import { isValidObjectId } from "../utils/idValidationUtils";
+import { checkAuth } from "../utils/authUtils";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
 // Get all users
-export const getUsers = async () => {
+export const getUsers = async (context: UserContext) => {
   try {
+    checkAuth(context, ["admin"], {
+      authentication: "You must be logged in to view users.",
+      authorization: "Unauthorized: Only admin can view users.",
+    });
+
     const users = await User.find();
     if (!users || users.length === 0) {
       throw new Error("No users found");
@@ -19,8 +26,13 @@ export const getUsers = async () => {
 };
 
 // Get a user by specific ID
-export const getUserById = async (id: string) => {
+export const getUserById = async (id: string, context: UserContext) => {
   try {
+    checkAuth(context, ["admin"], {
+      authentication: "You must be logged in to view user details.",
+      authorization: "Unauthorized: Only admin can view user details.",
+    });
+
     // Validate that the ID has the correct format
     if (!isValidObjectId(id)) {
       throw new Error("Invalid user ID format");
@@ -72,14 +84,22 @@ export const createUser = async (args: {
 };
 
 // Update an existing user
-export const updateUser = async (args: {
-  id: string;
-  name?: string;
-  email?: string;
-  password?: string;
-  role?: string;
-}) => {
+export const updateUser = async (
+  args: {
+    id: string;
+    name?: string;
+    email?: string;
+    password?: string;
+    role?: string;
+  },
+  context: UserContext
+) => {
   try {
+    checkAuth(context, ["admin"], {
+      authentication: "You must be logged in to update users.",
+      authorization: "Unauthorized: Only admin can update users.",
+    });
+
     // Validate that the ID has the correct format
     if (!isValidObjectId(args.id)) {
       throw new Error("Invalid user ID format");
@@ -128,8 +148,13 @@ export const updateUser = async (args: {
 };
 
 // Delete a user
-export const deleteUser = async (id: string) => {
+export const deleteUser = async (id: string, context: UserContext) => {
   try {
+    checkAuth(context, ["admin"], {
+      authentication: "Authentication required to delete a user.",
+      authorization: "Unauthorized: Only admin can delete users.",
+    });
+
     // Validate that the ID has the correct format
     if (!isValidObjectId(id)) {
       throw new Error("Invalid user ID format");
@@ -147,8 +172,13 @@ export const deleteUser = async (id: string) => {
 };
 
 // Delete all users except admins
-export const deleteAllUsers = async () => {
+export const deleteAllUsers = async (context: UserContext) => {
   try {
+    checkAuth(context, ["admin"], {
+      authentication: "Authentication required to delete a user.",
+      authorization: "Unauthorized: Only admin can delete users.",
+    });
+
     // Check if there are any users in the database
     const users = await User.find();
     if (!users || users.length === 0) {

@@ -1,10 +1,10 @@
 import UserType from "../types/UserType";
 import TaskType from "../types/TaskType";
 import ProjectType from "../types/ProjectType";
-import Project from "../../models/projectModel";
 import { GraphQLObjectType, GraphQLList, GraphQLID } from "graphql";
 import { getUsers, getUserById } from "./../../resolvers/userResolver";
 import { getTasks, getTaskById } from "./../../resolvers/taskResolver";
+import { getProjects, getProjectById } from "../../resolvers/projectResolver";
 
 const RootQuery = new GraphQLObjectType({
   name: "RootQueryType",
@@ -12,45 +12,45 @@ const RootQuery = new GraphQLObjectType({
     // User queries
     users: {
       type: new GraphQLList(UserType),
-      resolve() {
-        return getUsers();
+      resolve(parent, args, context) {
+        return getUsers(context);
       },
     },
     user: {
       type: UserType,
       args: { id: { type: GraphQLID } },
-      resolve(parent, args) {
-        return getUserById(args.id);
+      resolve(parent, args, context) {
+        return getUserById(args.id, context);
       },
     },
 
     // Project queries
     projects: {
       type: new GraphQLList(ProjectType),
-      resolve() {
-        return Project.find();
+      resolve(parent, args, context) {
+        return getProjects(context);
       },
     },
     project: {
       type: ProjectType,
       args: { id: { type: GraphQLID } },
-      resolve(parent, args) {
-        return Project.findById(args.id);
+      resolve(parent, args, context) {
+        return getProjectById(args.id, context);
       },
     },
 
     // Task queries
     tasks: {
       type: new GraphQLList(TaskType),
-      resolve() {
-        return getTasks();
+      resolve(parent, args, context) {
+        return getTasks(context);
       },
     },
     task: {
       type: TaskType,
       args: { id: { type: GraphQLID } },
-      resolve(parent, args) {
-        return getTaskById(args.id);
+      resolve(parent, args, context) {
+        return getTaskById(args.id, context);
       },
     },
   },

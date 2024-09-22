@@ -4,9 +4,7 @@ import {
   GraphQLString,
   GraphQLList,
 } from "graphql";
-import UserType from "./UserType";
 import User from "../../models/userModel";
-import ProjectType from "./ProjectType";
 import Project from "../../models/projectModel";
 
 const TaskType = new GraphQLObjectType({
@@ -17,20 +15,20 @@ const TaskType = new GraphQLObjectType({
     description: { type: GraphQLString },
     status: { type: GraphQLString },
     assignedTo: {
-      type: UserType,
+      type: require("./UserType").default,
       resolve(parent) {
         return User.findById(parent.assignedTo);
       },
     },
     finishedBy: {
-      type: UserType,
+      type: require("./UserType").default,
       resolve(parent) {
         return User.findById(parent.finishedBy);
       },
     },
     createdAt: { type: GraphQLString },
     project: {
-      type: ProjectType,
+      type: require("./ProjectType").default,
       resolve(parent) {
         return Project.findById(parent.project);
       },

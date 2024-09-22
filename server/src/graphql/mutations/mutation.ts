@@ -1,7 +1,6 @@
 import UserType from "../types/UserType";
 import TaskType from "../types/TaskType";
 import ProjectType from "../types/ProjectType";
-import Project from "../../models/projectModel";
 import {
   GraphQLObjectType,
   GraphQLNonNull,
@@ -24,6 +23,12 @@ import {
   deleteTask,
   assignTask,
 } from "./../../resolvers/taskResolver";
+import {
+  createProject,
+  updateProject,
+  deleteProject,
+  deleteAllProjects,
+} from "./../../resolvers/projectResolver";
 
 const Mutation = new GraphQLObjectType({
   name: "Mutation",
@@ -55,43 +60,28 @@ const Mutation = new GraphQLObjectType({
         password: { type: GraphQLString },
       },
       async resolve(parent, args, context) {
-        if (!context.user) {
-          throw new Error("Authentication required");
-        }
-        if (context.user.role !== "admin") {
-          throw new Error("Unauthorized: Only admin can update users");
-        }
-        return await updateUser({
-          id: args.id,
-          name: args.name,
-          email: args.email,
-          password: args.password,
-        });
+        return await updateUser(
+          {
+            id: args.id,
+            name: args.name,
+            email: args.email,
+            password: args.password,
+          },
+          context
+        );
       },
     },
     deleteUser: {
       type: UserType,
       args: { id: { type: new GraphQLNonNull(GraphQLID) } },
       async resolve(parent, args, context) {
-        if (!context.user) {
-          throw new Error("Authentication required");
-        }
-        if (context.user.role !== "admin") {
-          throw new Error("Unauthorized: Only admin can delete users");
-        }
-        return await deleteUser(args.id);
+        return await deleteUser(args.id, context);
       },
     },
     deleteAllUsers: {
       type: GraphQLString,
       async resolve(_, args, context) {
-        if (!context.user) {
-          throw new Error("Authentication required");
-        }
-        if (context.user.role !== "admin") {
-          throw new Error("Unauthorized: Only admin can delete users");
-        }
-        return await deleteAllUsers();
+        return await deleteAllUsers(context);
       },
     },
     loginUser: {
@@ -129,12 +119,38 @@ const Mutation = new GraphQLObjectType({
         name: { type: new GraphQLNonNull(GraphQLString) },
         description: { type: GraphQLString },
       },
-      resolve(parent, args) {
-        const newProject = new Project({
-          name: args.name,
-          description: args.description,
-        });
-        return newProject.save();
+      resolve: async (parent, args, context) => {
+        return createProject(
+          { name: args.name, description: args.description },
+          context
+        );
+      },
+    },
+    updateProject: {
+      type: ProjectType,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLID) },
+        name: { type: new GraphQLNonNull(GraphQLString) },
+        description: { type: GraphQLString },
+      },
+      resolve: async (parent, args, context) => {
+        return updateProject(
+          { id: args.id, name: args.name, description: args.description },
+          context
+        );
+      },
+    },
+    deleteProject: {
+      type: ProjectType,
+      args: { id: { type: new GraphQLNonNull(GraphQLID) } },
+      resolve: async (parent, args, context) => {
+        return deleteProject(args.id, context);
+      },
+    },
+    deleteAllProjects: {
+      type: GraphQLString,
+      resolve: async (parent, args, context) => {
+        return deleteAllProjects(context);
       },
     },
 
@@ -150,16 +166,19 @@ const Mutation = new GraphQLObjectType({
         project: { type: new GraphQLNonNull(GraphQLID) },
         tags: { type: new GraphQLList(GraphQLString) },
       },
-      resolve(parent, args) {
-        return createTask({
-          title: args.title,
-          description: args.description,
-          status: args.status,
-          assignedTo: args.assignedTo,
-          finishedBy: args.finishedBy,
-          project: args.project,
-          tags: args.tags,
-        });
+      resolve: async (parent, args, context) => {
+        return await createTask(
+          {
+            title: args.title,
+            description: args.description,
+            status: args.status,
+            assignedTo: args.assignedTo,
+            finishedBy: args.finishedBy,
+            project: args.project,
+            tags: args.tags,
+          },
+          context
+        );
       },
     },
     updateTask: {
@@ -172,22 +191,25 @@ const Mutation = new GraphQLObjectType({
         finishedBy: { type: GraphQLID },
         tags: { type: new GraphQLList(GraphQLString) },
       },
-      resolve(parent, args) {
-        return updateTask({
-          id: args.id,
-          title: args.title,
-          description: args.description,
-          status: args.status,
-          finishedBy: args.finishedBy,
-          tags: args.tags,
-        });
+      resolve(parent, args, context) {
+        return updateTask(
+          {
+            id: args.id,
+            title: args.title,
+            description: args.description,
+            status: args.status,
+            finishedBy: args.finishedBy,
+            tags: args.tags,
+          },
+          context
+        );
       },
     },
     deleteTask: {
       type: TaskType,
       args: { id: { type: new GraphQLNonNull(GraphQLID) } },
-      resolve(parent, args) {
-        return deleteTask(args.id);
+      resolve: async (parent, args, context) => {
+        return await deleteTask(args.id, context);
       },
     },
     assignTask: {
@@ -196,8 +218,8 @@ const Mutation = new GraphQLObjectType({
         taskId: { type: new GraphQLNonNull(GraphQLID) },
         userId: { type: new GraphQLNonNull(GraphQLID) },
       },
-      resolve(parent, args) {
-        return assignTask(args.taskId, args.userId);
+      resolve(parent, args, context) {
+        return assignTask(args.taskId, args.userId, context);
       },
     },
   },

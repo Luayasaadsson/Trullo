@@ -192,7 +192,7 @@ export const deleteAllUsers = async (context: UserContext) => {
       throw new Error("Failed to delete users");
     }
 
-    return { message: `${result.deletedCount} users deleted.` };
+    return `Successfully deleted ${result.deletedCount} users.`;
   } catch (error) {
     throw new Error(
       `Failed to delete all users: There is no user to delete. ${

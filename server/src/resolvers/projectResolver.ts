@@ -105,7 +105,6 @@ export const deleteAllProjects = async (context: UserContext) => {
     authorization: "Only admin can delete all projects.",
   });
 
-  // Radera alla projekt
   const result = await Project.deleteMany();
 
   if (result.deletedCount === 0) {

@@ -105,10 +105,12 @@ const Mutation = new GraphQLObjectType({
       type: GraphQLString,
       args: {
         token: { type: new GraphQLNonNull(GraphQLString) },
+        oldPassword: { type: new GraphQLNonNull(GraphQLString) },
         newPassword: { type: new GraphQLNonNull(GraphQLString) },
+        confirmPassword: { type: new GraphQLNonNull(GraphQLString) },
       },
       async resolve(parent, args) {
-        return await resetPassword(args.token, args.newPassword);
+        return await resetPassword(args.token, args.oldPassword, args.newPassword, args.confirmPassword);
       },
     },
 

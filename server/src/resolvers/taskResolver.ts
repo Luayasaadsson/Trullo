@@ -261,24 +261,20 @@ export const assignTask = async (
         "You do not have the necessary permissions to assign tasks.",
     });
 
-    // Validate the format of the task ID
-    if (!isValidObjectId(taskId)) {
-      throw new Error("Invalid task ID format");
+    // Validate taskId and userId format
+    if (!isValidObjectId(taskId) || !isValidObjectId(userId)) {
+      throw new Error("Invalid task or user ID format");
     }
 
-    // Validate the format of the user ID
-    if (!isValidObjectId(userId)) {
-      throw new Error("Invalid user ID format");
-    }
+    const [task, assignedUser] = await Promise.all([
+      Task.findById(taskId),
+      User.findById(userId),
+    ]);
 
-    // Check if the task exists
-    const task = await Task.findById(taskId);
     if (!task) {
       throw new Error(`Task with ID ${taskId} not found`);
     }
 
-    // Check if the user exists
-    const assignedUser = await User.findById(userId);
     if (!assignedUser) {
       throw new Error(`User with ID ${userId} not found`);
     }
@@ -296,28 +292,22 @@ export const assignTask = async (
 
     return updatedTask;
   } catch (error) {
-    // More detailed error information
     const errorMessage = (error as Error).message;
-    if (errorMessage.includes("Invalid task ID format")) {
-      throw new Error(
-        `Error: ${errorMessage}. Please check the format of the task ID.`
-      );
+
+    const errorMap: { [key: string]: string } = {
+      "Invalid task or user ID format":
+        "Error: Invalid ID format for task or user. Please verify the ID format.",
+      "Task with ID": `Error: ${errorMessage}. Ensure that the task ID is correct.`,
+      "User with ID": `Error: ${errorMessage}. Ensure that the user ID is correct.`,
+    };
+
+    for (const key in errorMap) {
+      if (errorMessage.includes(key)) {
+        throw new Error(errorMap[key]);
+      }
     }
-    if (errorMessage.includes("Invalid user ID format")) {
-      throw new Error(
-        `Error: ${errorMessage}. Please check the format of the user ID.`
-      );
-    }
-    if (errorMessage.includes("Task with ID")) {
-      throw new Error(
-        `Error: ${errorMessage}. Ensure that the task ID is correct.`
-      );
-    }
-    if (errorMessage.includes("User with ID")) {
-      throw new Error(
-        `Error: ${errorMessage}. Ensure that the user ID is correct.`
-      );
-    }
+
     throw new Error(`Failed to assign task: ${errorMessage}`);
   }
 };
+

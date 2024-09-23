@@ -250,7 +250,11 @@ export const requestPasswordReset = async (email: string) => {
 };
 
 // Reset password
-export const resetPassword = async (token: string, newPassword: string) => {
+export const resetPassword = async (token: string, oldPassword: string, newPassword: string, confirmPassword: string) => {
+  if (newPassword !== confirmPassword) {
+    throw new Error("New password and confirm password do not match.");
+  }
+  
   if (newPassword.length < 6) {
     throw new Error("Password must be at least 6 characters long.");
   }
@@ -262,6 +266,11 @@ export const resetPassword = async (token: string, newPassword: string) => {
 
   if (!user) {
     throw new Error("Invalid or expired reset token");
+  }
+
+  const isOldPassword = await bcrypt.compare(oldPassword, user.password);
+  if (!isOldPassword) {
+    throw new Error("Invalid old password.");
   }
 
   await user.save();

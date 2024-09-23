@@ -55,6 +55,9 @@ Bcrypt används för att hasha och salta lösenord innan de lagras i databasen, 
 - **Crypto**:
 Crypto används för att generera unika tokens, exempelvis för lösenordsåterställning. Genom att använda kryptografiska funktioner från detta bibliotek kan jag skapa säkra återställningstokens.
 
+- **Nodemailer**:
+Nodemailer är ett Node.js-bibliotek som används för att skicka e-postmeddelanden. I detta projekt används det tillsammans med Mailtrap för att hantera lösenordsåterställningsmeddelanden.
+
 - **Nodemon**:
 Nodemon är ett utvecklingsberoende verktyg som övervakar filändringar i projektet och startar automatiskt om servern när en fil ändras, vilket förbättrar utvecklingsflödet.
 
@@ -71,6 +74,19 @@ Applikationen är strukturerad kring tre huvudmodeller: User, Task och Project. 
 
 - **Användarhantering**:
 Applikationen hanterar användare genom att låta administratörer skapa, läsa, uppdatera och ta bort användare. Endast inloggade administratörer kan göra detta.
+
+### Lösenordsåterställning
+Jag har implementerat en säker metod för att återställa lösenord. Användaren måste ange sitt gamla lösenord, det nya lösenordet samt bekräfta det nya lösenordet:
+
+- **Kontroll av gammalt lösenord**:
+Användaren måste ange sitt gamla lösenord, vilket verifieras innan det nya lösenordet sparas.
+
+- **Kontroll av nytt lösenord och bekräftelse**:
+Användaren måste ange sitt nya lösenord två gånger för att säkerställa att de matchar.
+
+### Mailtrap-integration
+
+För att hantera lösenordsåterställning använder jag [Mailtrap](https://mailtrap.io/), som är ett verktyg för att fånga och simulera e-postmeddelanden i en säker miljö. Mailtrap används för att skicka återställningstokens för lösenord till användaren via e-post under utvecklingsfasen.
 
 - **Uppgiftshantering**:
 Varje användare kan skapa, uppdatera och ta bort Tasks. Tasks har ett statusfält som anger om de är i "Todo", "In Progress" eller "Completed", och de kan tilldelas en specifik användare.

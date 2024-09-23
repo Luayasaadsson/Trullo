@@ -2,6 +2,7 @@ import User from "../models/userModel";
 import { UserContext } from "./../types/types";
 import { hashPassword } from "./../utils/passwordUtils";
 import { isValidObjectId } from "../utils/idValidationUtils";
+import { sendResetTokenEmail } from "../utils/emailUtils";
 import { checkAuth } from "../utils/authUtils";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -244,7 +245,7 @@ export const requestPasswordReset = async (email: string) => {
   user.resetTokenExpiry = new Date(Date.now() + 3600000); // Token valid for 1 hour
   await user.save();
 
-  console.log(`Password reset token generated for ${email}: ${resetToken}`);
+await sendResetTokenEmail(user.email, resetToken);
 
   return `A password reset token has been sent to ${email}. The token is valid for 1 hour.`;
 };
